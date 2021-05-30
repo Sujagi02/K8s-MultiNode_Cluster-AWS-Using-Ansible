@@ -1,0 +1,25 @@
+- hosts: localhost
+  gather_facts: no
+  vars_files:
+          - credential.yml
+  tasks:
+          - name: Run Ec2 Role
+            include_role:
+                    name: aws-ec2
+
+- hosts: ec2_master
+  gather_facts: no
+  tasks:
+          - name: Run K8s Master Role
+            include_role:
+                    name: kube-master
+
+- hosts: ec2_slave
+  gather_facts: no
+  tasks:
+          - name: Run K8s Slave Role
+            include_role:
+                    name: kube-slave
+
+
+

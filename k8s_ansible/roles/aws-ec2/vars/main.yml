@@ -1,0 +1,16 @@
+instance_tag:
+        - master
+        - slave1
+        - slave2
+
+python_pkg:
+        - boto
+        - boto3
+
+sg_name: Allow all
+region_name: ap-south-1
+subnet_name: subnet-9c7d91f7
+ami: ami-010aff33ed5991201
+keypair: key
+instance_type: t2.micro 
+

@@ -1,0 +1,87 @@
+# tasks file for kube_master
+- name: Add kubernetes repo on Master Node
+  yum_repository:
+          name: Kubernetes
+          description: K8s repo
+          file: kubernetes.repo
+          baseurl: https://packages.cloud.google.com/yum/repos/kubernetes-el7-x86_64
+          enabled: yes
+          gpgcheck: 1
+          repo_gpgcheck: 1
+          gpgkey: https://packages.cloud.google.com/yum/doc/yum-key.gpg  https://packages.cloud.google.com/yum/doc/rpm-package-key.gpg
+
+
+- name: Installing docker & kubeadm on MN
+  yum:
+          name:
+                  - docker
+                  - kubeadm
+                  - iproute-tc
+          state: present
+
+- name: Enabling docker & kubeadm
+  service:
+          name: "{{ item }}"
+          state: started
+          enabled: yes
+  loop: "{{ service_names }}"
+
+- name: Pulling the images of K8s master
+  command: kubeadm config images pull
+
+- name: Updating Docker cgroup on MN
+  copy:
+          dest: /etc/docker/daemon.json
+          content: |
+              {
+              "exec-opts" : ["native.cgroupdriver=systemd"]
+              }
+
+- name: Restart docker
+  service: 
+     name: docker
+     state: restarted
+
+- name: Initialising k8s cluster
+  command: kubeadm init --pod-network-cidr=10.244.0.0/16 --ignore-preflight-errors=NumCPU --ignore-preflight-errors=Mem
+
+- name: Setting up kubectl
+  shell:
+          cmd: |
+            mkdir -p $HOME/.kube
+            sudo cp -i /etc/kubernetes/admin.conf  $HOME/.kube/config
+            sudo chown $(id -u):$(id -g) $HOME/.kube/config
+
+- name: Deploying Flannel
+  command: kubectl apply -f https://raw.githubusercontent.com/coreos/flannel/master/Documentation/kube-flannel.yml
+
+- name: Creating token for Slave
+  command: kubeadm token create --print-join-command
+  register: token
+
+- name: Cleaning Caches on RAM
+  shell: echo 3 > /proc/sys/vm/drop_caches
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
